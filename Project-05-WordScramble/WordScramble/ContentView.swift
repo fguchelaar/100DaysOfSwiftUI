@@ -18,6 +18,10 @@ struct ContentView: View {
     @State private var errorMessage = ""
     @State private var showingError = false
 
+    private var score: Int {
+        usedWords.reduce(0) { $0 + $1.count }
+    }
+
     var body: some View {
 
         NavigationView {
@@ -33,8 +37,11 @@ struct ContentView: View {
                     Image(systemName: "\($0.count).circle.fill")
                         .foregroundColor(.secondary)
                 }
+
+                Text("Found \(usedWords.count) words, using \(score) letters")
             }
             .navigationBarTitle(rootWord)
+            .navigationBarItems(leading: Button("New word", action: startGame))
             .onAppear(perform: startGame)
             .alert(isPresented: $showingError) {
                 Alert(title: Text(errorTitle), message: Text(errorMessage), dismissButton: .default(Text("OK")))
@@ -52,7 +59,7 @@ struct ContentView: View {
             .components(separatedBy: .newlines) else {
                 fatalError("Could not load words from start.txt")
         }
-
+        usedWords = [String]()
         rootWord = words.randomElement() ?? "keyboard"
     }
 
@@ -74,7 +81,7 @@ struct ContentView: View {
         }
 
         guard isValid(word: word) else {
-            wordError(title: "Word not possible", message: "That isn't a real word.")
+            wordError(title: "Word not possible", message: "Use words with more than 3 letters, not copying the root word and is a real word.")
             return
         }
 
@@ -100,6 +107,10 @@ struct ContentView: View {
     }
 
     func isValid(word: String) -> Bool {
+        if word.count < 3 && word == rootWord {
+            return false
+        }
+
         let checker = UITextChecker()
         let range = NSRange(location: 0, length: word.utf16.count)
         let misspelledRange = checker.rangeOfMisspelledWord(in: word, range: range, startingAt: 0, wrap: false, language: "en")
