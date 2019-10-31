@@ -16,6 +16,11 @@ struct AddView: View {
     
     static let types = ["Business", "Personal"]
 
+    private var isInputValid: Bool {
+        name.trimmingCharacters(in: .whitespaces).count > 0
+            && Int(amount) != nil
+    }
+
     @ObservedObject var expenses: Expenses
     @Environment(\.presentationMode) var presentationMode
 
@@ -40,6 +45,7 @@ struct AddView: View {
                         self.presentationMode.wrappedValue.dismiss()
                     }
                 }
+                .disabled(!isInputValid)
             )
         }
     }

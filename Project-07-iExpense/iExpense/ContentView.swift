@@ -8,6 +8,27 @@
 
 import SwiftUI
 
+struct CurrencyView: View {
+
+    var amount = 0
+
+    private var formattedAmount: String {
+        let formatter = NumberFormatter()
+        formatter.locale = Locale.current
+        formatter.numberStyle = .currency
+        formatter.maximumFractionDigits = 0
+        return formatter.string(from: amount as NSNumber) ?? ""
+    }
+
+    var body: some View {
+        Text(formattedAmount)
+            .fontWeight(
+                amount <= 10 ? .regular
+                : amount <= 100 ? .semibold
+                : .bold)
+    }
+}
+
 struct ContentView: View {
     
     @ObservedObject var expenses = Expenses()
@@ -25,22 +46,23 @@ struct ContentView: View {
                             Text(item.type)
                         }
                         Spacer()
-                        Text("\(item.amount)")
+                        CurrencyView(amount: item.amount)
                     }
                 }
                 .onDelete(perform: removeItems)
             }
             .navigationBarTitle("iExpense")
-            .navigationBarItems(trailing:
-                Button(action: {
+            .navigationBarItems(
+                leading: EditButton(),
+                trailing: Button(action: {
                     self.showingAddExpense.toggle()
                 }) {
                     Image(systemName: "plus")
                 }
             )
         }
-            .sheet(isPresented: $showingAddExpense) {
-                AddView(expenses: self.expenses)
+        .sheet(isPresented: $showingAddExpense) {
+            AddView(expenses: self.expenses)
         }
     }
     
@@ -52,8 +74,6 @@ struct ContentView: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        let view = ContentView()
-        view.expenses.items.append(ExpenseItem(name: "Name", type: "Type", amount: 100))
-        return view
+        ContentView()
     }
 }
