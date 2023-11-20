@@ -2,65 +2,62 @@
 //  ContentView.swift
 //  WeSplit
 //
-//  Created by Frank Guchelaar on 11/10/2019.
-//  Copyright © 2019 Awesomation. All rights reserved.
+//  Created by Frank Guchelaar on 19/11/2023.
 //
 
 import SwiftUI
 
 struct ContentView: View {
-
-    @State private var checkAmount = ""
+    @State private var checkAmount = 20.0
     @State private var numberOfPeople = 2
-    @State private var tipPercentage = 2
+    @State private var tipPercentage = 20
 
     let tipPercentages = [10, 15, 20, 25, 0]
 
-    var totalPerPerson: Double {
-        let peopleCount = Double(numberOfPeople + 2)
-        let tipSelection = Double(tipPercentages[tipPercentage])
-        let amount = Double(checkAmount) ?? 0.0
+    var totalAmount: Double {
+        checkAmount + checkAmount * Double(tipPercentage) / 100.0
+    }
 
-        return (amount + (amount * tipSelection / 100)) / peopleCount
+    var totalPerPerson: Double {
+        totalAmount / Double(numberOfPeople)
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section {
-                    TextField("Amount", text: $checkAmount)
+                    TextField("Amount", value: $checkAmount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
                         .keyboardType(.decimalPad)
-
                     Picker("Number of people", selection: $numberOfPeople) {
-
-                        ForEach(2 ..< 100) {
+                        ForEach(2 ..< 100, id: \.self) {
                             Text("\($0) people")
                         }
                     }
-                    .pickerStyle(DefaultPickerStyle())
+                    .pickerStyle(.navigationLink)
                 }
 
-                Section(header: Text("How much do you want to tip?")) {
+                Section("How much tip do you want to leave?") {
                     Picker("Tip percentage", selection: $tipPercentage) {
-                        ForEach(0..<tipPercentages.count) {
-                            Text("\(self.tipPercentages[$0])%")
+                        ForEach(tipPercentages, id: \.self) {
+                            Text($0, format: .percent)
                         }
                     }
-                    .pickerStyle(SegmentedPickerStyle())
+                    .pickerStyle(.segmented)
                 }
 
-                Section(header: Text("Amount per person")) {
-                    Text("$\(totalPerPerson, specifier: "%.2f")")
-                        .foregroundColor(tipPercentages[tipPercentage] == 0 ? .red : .primary)
+                Section("Total amount") {
+                    Text(totalAmount, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                }
+
+                Section("Amount per person") {
+                    Text(totalPerPerson, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
                 }
             }
-            .navigationBarTitle("WeSplit")
+            .navigationTitle("WeSplit")
         }
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
-    }
+#Preview {
+    ContentView()
 }
